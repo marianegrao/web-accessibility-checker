@@ -1,11 +1,11 @@
 import { createWebHistory, createRouter } from "vue-router";
 
-import WebAccessibilityPage from "@/modules/web/views/WebAccessibilityPage.vue";
-import WebHistoryPage from "@/modules/web/views/WebHistoryPage.vue";
+import WebsiteAccessibilityPage from "@/modules/website/views/WebsiteAccessibilityPage.vue";
+import WebsiteHistoryPage from "@/modules/website/views/WebsiteHistoryPage.vue";
 
 const routes = [
-  { path: "/", component: WebAccessibilityPage },
-  { path: "/history", component: WebHistoryPage },
+  { path: "/", component: WebsiteAccessibilityPage },
+  { path: "/history", component: WebsiteHistoryPage },
 ];
 
 export const router = createRouter({
