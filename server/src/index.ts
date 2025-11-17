@@ -1,5 +1,5 @@
-import express, { Request, Response } from "express";
-import websiteRouter from "./modules/web/websites.router";
+import express from "express";
+import websiteRouter from "./modules/websites/websites.router";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
