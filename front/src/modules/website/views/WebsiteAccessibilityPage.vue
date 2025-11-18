@@ -1,0 +1,256 @@
+<script setup lang="ts">
+import { ref } from "vue";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { AlertCircleIcon } from "lucide-vue-next";
+import { checkWebsiteAccessibility } from "../services/website";
+import type { AnalysisResult } from "../services/website";
+import AnalysisResultModal from "../components/AnalysisResultModal.vue";
+
+const url = ref("");
+const viewState = ref("form");
+const error = ref(false);
+const errorMessage = ref("");
+const resultAnalysis = ref({
+  details: [
+    {
+      title: "",
+      score: 0,
+      maxScore: 0,
+      description: "",
+    },
+  ],
+  total: 0,
+});
+const config = ref({
+  rating: "",
+  color: "",
+  bgColor: "",
+  icon: "",
+  description: "",
+});
+
+const getDescriptionForScore = (
+  title: string,
+  score: number,
+  maxScore: number
+) => {
+  const percentage = (score / maxScore) * 100;
+
+  if (title === "Títulos da Página") {
+    return percentage >= 93
+      ? "Isto é a 'capa do livro' da sua página. A sua está perfeita! O Google e os visitantes sabem exatamente sobre o que ela fala antes mesmo de entrar."
+      : "Isto é a 'capa do livro' da sua página. O título está bom, mas pode ser melhorado para que visitantes e o Google entendam melhor sobre o que sua página fala.";
+  } else if (title === "Descrição das Imagens") {
+    return percentage >= 87
+      ? "Isto é a 'descrição das fotos' para quem não pode vê-las. Quase todas as suas imagens têm essa descrição, o que é ótimo para acessibilidade e para o Google entender suas imagens. Perdemos uns pontinhos por uma imagem que ficou sem."
+      : "Isto é a 'descrição das fotos' para quem não pode vê-las. Algumas imagens não têm descrição, o que dificulta o acesso para pessoas com deficiência visual e para o Google entender o conteúdo.";
+  } else if (title === "Etiquetas dos Formulários") {
+    return percentage >= 93
+      ? "Isto é a 'etiqueta dos campos' em um formulário. Todos os seus campos (como 'nome', 'email') estão bem identificados. Excelente para usabilidade."
+      : "Isto é a 'etiqueta dos campos' em um formulário. Alguns campos não estão bem identificados, o que pode confundir os visitantes na hora de preencher.";
+  }
+  return "Análise completada.";
+};
+
+const onSubmit = async () => {
+  if (!url.value.trim()) {
+    error.value = true;
+    errorMessage.value = "Por favor, digite uma URL válida";
+    return;
+  }
+
+  viewState.value = "loading";
+  error.value = false;
+  errorMessage.value = "";
+
+  try {
+    const response: AnalysisResult = await checkWebsiteAccessibility(url.value);
+
+    const total = response.total.score;
+    resultAnalysis.value.total = total;
+    resultAnalysis.value.details = [
+      {
+        title: "Títulos da Página",
+        score: response.titleScore.score,
+        maxScore: response.titleScore.maxScore,
+        description: getDescriptionForScore(
+          "Títulos da Página",
+          response.titleScore.score,
+          response.titleScore.maxScore
+        ),
+      },
+      {
+        title: "Descrição das Imagens",
+        score: response.imageAltScore.score,
+        maxScore: response.imageAltScore.maxScore,
+        description: getDescriptionForScore(
+          "Descrição das Imagens",
+          response.imageAltScore.score,
+          response.imageAltScore.maxScore
+        ),
+      },
+      {
+        title: "Etiquetas dos Formulários",
+        score: response.inputLabelScore.score,
+        maxScore: response.inputLabelScore.maxScore,
+        description: getDescriptionForScore(
+          "Etiquetas dos Formulários",
+          response.inputLabelScore.score,
+          response.inputLabelScore.maxScore
+        ),
+      },
+    ];
+
+    config.value = getRatingConfig(total);
+
+    viewState.value = "result";
+  } catch (err: any) {
+    error.value = true;
+    errorMessage.value =
+      err.message ||
+      "Erro ao analisar o site. Verifique a URL e tente novamente.";
+    viewState.value = "form";
+  }
+};
+
+function resetForm() {
+  url.value = "";
+  viewState.value = "form";
+  error.value = false;
+  resultAnalysis.value = {
+    total: 0,
+    details: [
+      {
+        title: "",
+        score: 0,
+        maxScore: 0,
+        description: "",
+      },
+    ],
+  };
+}
+
+const getRatingConfig = (score: number) => {
+  if (score >= 8) {
+    return {
+      rating: "Excelente",
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      iconColor: "green-600",
+      icon: "CheckCircle2",
+      description:
+        "Seu site está em ótima conformidade com as diretrizes de acessibilidade WCAG.",
+    };
+  } else if (score >= 6) {
+    return {
+      rating: "Bom",
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      icon: "AlertCircle",
+      description:
+        "Seu site está bem, mas algumas melhorias podem torná-lo ainda mais acessível.",
+    };
+  } else if (score >= 4) {
+    return {
+      rating: "Necessita Melhorias",
+      color: "text-yellow-600",
+      bgColor: "bg-yellow-50",
+      icon: "AlertTriangle",
+      description:
+        "Seu site precisa de melhorias significativas para atender aos padrões de acessibilidade.",
+    };
+  } else {
+    return {
+      rating: "Crítico",
+      color: "text-red-600",
+      bgColor: "bg-red-50",
+      icon: "XCircle",
+      description:
+        "Seu site apresenta problemas graves de acessibilidade que precisam ser corrigidos urgentemente.",
+    };
+  }
+};
+</script>
+
+<template>
+  <div class="container flex flex-col justify-center align-middle mx-auto px-4">
+    <div
+      v-if="viewState === 'form'"
+      class="w-full max-w-2xl mx-auto"
+      data-testid="form-container"
+    >
+      <Card class="bg-neutral-50 shadow-none border my-4">
+        <CardContent class="flex flex-col items-center justify-center">
+          <h1 class="text-xl md:text-2xl font-semibold text-gray-900 mb-3">
+            Valide a acessibilidade do seu site aqui
+          </h1>
+
+          <form @submit.prevent="onSubmit">
+            <label for="site-url">Digite a URL do site</label>
+            <Input
+              data-testid="url-input"
+              id="site-url"
+              v-model="url"
+              placeholder="ex: https://exemplo.com.br"
+              aria-label="URL do site para análise"
+              type="url"
+              class="w-full bg-white border border-gray-300 rounded-md px-4 py-3 text-base placeholder:text-gray-500 text-gray-900 mt-3 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+            />
+
+            <Button
+              data-testid="submit-button"
+              :disabled="!url"
+              type="submit"
+              class="w-full bg-blue-600 hover:bg-blue-700 hover:cursor-pointer text-white py-3 rounded-md text-lg font-semibold mt-4"
+              >Analisar</Button
+            >
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+    <Alert
+      role="alert"
+      data-testid="error-alert"
+      v-if="error"
+      variant="destructive"
+      class="w-full max-w-2xl mx-auto"
+    >
+      <AlertCircleIcon />
+      <AlertTitle>{{ errorMessage }}</AlertTitle>
+    </Alert>
+
+    <div v-if="viewState === 'loading'" class="w-full max-w-3xl mx-auto">
+      <Card class="w-auto bg-neutral-50 shadow-none border my-4">
+        <CardContent class="flex flex-col items-center justify-center">
+          <Spinner
+            data-testid="loading-spinner"
+            size="32"
+            class="text-blue-600 animate-spin"
+          />
+          <p class="text-xl md:text-2xl font-semibold text-gray-900 mb-3">
+            Carregando resultados...
+          </p>
+          <p class="text md:text-lg text-muted-foreground">
+            Analisando site {{ url }}
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+
+    <div v-if="viewState === 'result'" class="w-full max-w-3xl mx-auto">
+      <AnalysisResultModal
+        :total="resultAnalysis.total"
+        :details="resultAnalysis.details"
+        :config="config"
+        :url="url"
+        @reset="resetForm"
+      />
+    </div>
+  </div>
+</template>
+
+<style scoped></style>
