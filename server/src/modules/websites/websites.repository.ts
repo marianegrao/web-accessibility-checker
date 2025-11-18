@@ -1,18 +1,16 @@
-import { Collection, ObjectId } from "mongodb";
-import { mongoDB } from "../../core/database";
+import { WebsiteModel, IWebsite } from "./websites.model";
 
-export class WebsitesRepository {
-  private collection: Collection;
-
-  constructor() {
-    this.collection = mongoDB.db().collection("websites");
+export class WebsiteRepository {
+  async savePageScore(data: { url: string; score: number }): Promise<IWebsite> {
+    const doc = new WebsiteModel(data);
+    return doc.save();
   }
 
-  async list(url: string) {
-    //
+  async findByUrl(url: string): Promise<IWebsite | null> {
+    return WebsiteModel.findOne({ url }).exec();
   }
 
-  async insert(url: string, score: string) {
-    //
+  async list(limit = 50): Promise<IWebsite[]> {
+    return WebsiteModel.find().sort({ createdAt: -1 }).limit(limit).exec();
   }
 }
