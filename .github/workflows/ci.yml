@@ -33,6 +33,9 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           working-directory: ./front
+          start: npm run dev
+          wait-on: "http://localhost:5173"
+          wait-on-timeout: 60
           command: npm run test:e2e
 
   backend_tests:
