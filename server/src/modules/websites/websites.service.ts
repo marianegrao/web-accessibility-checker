@@ -77,6 +77,6 @@ export class WebsiteService extends WebsiteResources {
     return websiteRepository.list();
   }
   async createAnalysisRecord(data: { url: string; score: number }) {
-    return websiteRepository.savePageScore(data);
+    return websiteRepository.saveWebsiteScore(data);
   }
 }
