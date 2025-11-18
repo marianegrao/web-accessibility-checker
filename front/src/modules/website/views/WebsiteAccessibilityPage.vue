@@ -3,24 +3,12 @@ import { ref } from "vue";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertTitle } from "@/components/ui/alert";
-import {
-  AlertCircle,
-  AlertCircleIcon,
-  AlertTriangle,
-  CheckCircle2,
-  XCircle,
-} from "lucide-vue-next";
+import { AlertCircleIcon } from "lucide-vue-next";
 import { checkWebsiteAccessibility } from "../services/website";
 import type { AnalysisResult } from "../services/website";
+import AnalysisResultModal from "../components/AnalysisResultModal.vue";
 
 const url = ref("");
 const viewState = ref("form");
@@ -249,113 +237,14 @@ const getScoreBadgeVariant = (
       </Card>
     </div>
 
-    <div
-      v-if="viewState === 'result'"
-      class="w-full max-w-3xl mx-auto overflow-y-auto max-h-[80vh]"
-    >
-      <Card class="w-auto bg-neutral-50 shadow-none border mb-6">
-        <CardContent
-          class="flex flex-col items-center justify-center p-6 sm:p-8"
-        >
-          <div class="flex flex-col items-center justify-center space-y-6">
-            <div
-              :class="`flex h-36 w-36 items-center justify-center rounded-full ${config.bgColor}`"
-            >
-              <div class="text-center">
-                <div class="flex items-baseline justify-center gap-1 mb-2">
-                  <span :class="`text-5xl font-bold ${config.color}`">
-                    {{ resultAnalysis.total }}
-                  </span>
-                  <span :class="`text-2xl font-bold ${config.color}`">/10</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="text-center space-y-2">
-              <div class="flex items-center justify-center gap-2">
-                <CheckCircle2
-                  v-if="config.icon === 'CheckCircle2'"
-                  color="green"
-                  aria-hidden="true"
-                />
-                <AlertCircle
-                  v-if="config.icon === 'AlertCircle'"
-                  color="blue"
-                  aria-hidden="true"
-                />
-                <AlertTriangle
-                  v-if="config.icon === 'AlertTriangle'"
-                  color="orange"
-                  aria-hidden="true"
-                />
-                <XCircle
-                  v-if="config.icon === 'XCircle'"
-                  color="red"
-                  aria-hidden="true"
-                />
-
-                <h2 class="text-2xl font-bold" :class="config.color">
-                  {{ config.rating }}
-                </h2>
-              </div>
-              <p class="text-md text-muted-foreground max-w-md">
-                {{ config.description }}
-              </p>
-            </div>
-
-            <Badge variant="secondary" class="text-xs">{{ url }}</Badge>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card class="w-full bg-neutral-50 shadow-none border mb-6">
-        <CardHeader>
-          <CardTitle class="text md:text-xl font-semibold text-gray-900 mb-3"
-            >Detalhes da Análise</CardTitle
-          >
-        </CardHeader>
-        <CardContent>
-          <Accordion type="single" collapsible class="w-full">
-            <AccordionItem
-              v-for="(detail, index) in resultAnalysis.details"
-              :key="index"
-              :value="`item-${index}`"
-            >
-              <AccordionTrigger class="hover-elevate px-3 rounded-lg">
-                <div
-                  class="flex items-center justify-between w-full pr-3 gap-4"
-                >
-                  <span class="text-sm font-medium text-left">{{
-                    detail.title
-                  }}</span>
-                  <Badge
-                    :variant="
-                      getScoreBadgeVariant(detail.score, detail.maxScore)
-                    "
-                    class="shrink-0"
-                  >
-                    {{ detail.score.toFixed(1) }}/{{ detail.maxScore }}
-                  </Badge>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent class="px-3 pt-2 pb-4">
-                <p class="text-sm text-muted-foreground leading-relaxed">
-                  {{ detail.description }}
-                </p>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </CardContent>
-      </Card>
-
-      <Button
-        @click="resetForm()"
-        variant="outline"
-        class="w-full mt-2"
-        size="lg"
-      >
-        Analisar Novo Site
-      </Button>
+    <div v-if="viewState === 'result'" class="w-full max-w-3xl mx-auto">
+      <AnalysisResultModal
+        :total="resultAnalysis.total"
+        :details="resultAnalysis.details"
+        :config="config"
+        :url="url"
+        @reset="resetForm"
+      />
     </div>
   </div>
 </template>
