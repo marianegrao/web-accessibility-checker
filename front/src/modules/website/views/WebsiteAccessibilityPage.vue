@@ -12,7 +12,6 @@ import AnalysisResultModal from "../components/AnalysisResultModal.vue";
 
 const url = ref("");
 const viewState = ref("form");
-const loading = ref(false);
 const error = ref(false);
 const errorMessage = ref("");
 const resultAnalysis = ref({
@@ -64,7 +63,6 @@ const onSubmit = async () => {
     return;
   }
 
-  loading.value = true;
   viewState.value = "loading";
   error.value = false;
   errorMessage.value = "";
@@ -108,6 +106,7 @@ const onSubmit = async () => {
     ];
 
     config.value = getRatingConfig(total);
+
     viewState.value = "result";
   } catch (err: any) {
     error.value = true;
@@ -115,15 +114,12 @@ const onSubmit = async () => {
       err.message ||
       "Erro ao analisar o site. Verifique a URL e tente novamente.";
     viewState.value = "form";
-  } finally {
-    loading.value = false;
   }
 };
 
 function resetForm() {
   url.value = "";
   viewState.value = "form";
-  loading.value = false;
   error.value = false;
   resultAnalysis.value = {
     total: 0,
@@ -178,19 +174,15 @@ const getRatingConfig = (score: number) => {
     };
   }
 };
-
-const getScoreBadgeVariant = (
-  score: number,
-  maxScore: number
-): "default" | "secondary" => {
-  const percentage = (score / maxScore) * 100;
-  return percentage >= 75 ? "default" : "secondary";
-};
 </script>
 
 <template>
   <div class="container flex flex-col justify-center align-middle mx-auto px-4">
-    <div v-if="viewState === 'form'" class="w-full max-w-2xl mx-auto">
+    <div
+      v-if="viewState === 'form'"
+      class="w-full max-w-2xl mx-auto"
+      data-testid="form-container"
+    >
       <Card class="bg-neutral-50 shadow-none border my-4">
         <CardContent class="flex flex-col items-center justify-center">
           <h1 class="text-xl md:text-2xl font-semibold text-gray-900 mb-3">
@@ -200,6 +192,7 @@ const getScoreBadgeVariant = (
           <form @submit.prevent="onSubmit">
             <label for="site-url">Digite a URL do site</label>
             <Input
+              data-testid="url-input"
               id="site-url"
               v-model="url"
               placeholder="ex: https://exemplo.com.br"
@@ -209,6 +202,7 @@ const getScoreBadgeVariant = (
             />
 
             <Button
+              data-testid="submit-button"
               :disabled="!url"
               type="submit"
               class="w-full bg-blue-600 hover:bg-blue-700 hover:cursor-pointer text-white py-3 rounded-md text-lg font-semibold mt-4"
@@ -218,7 +212,13 @@ const getScoreBadgeVariant = (
         </CardContent>
       </Card>
     </div>
-    <Alert v-if="error" variant="destructive" class="w-full max-w-2xl mx-auto">
+    <Alert
+      role="alert"
+      data-testid="error-alert"
+      v-if="error"
+      variant="destructive"
+      class="w-full max-w-2xl mx-auto"
+    >
       <AlertCircleIcon />
       <AlertTitle>{{ errorMessage }}</AlertTitle>
     </Alert>
@@ -226,7 +226,11 @@ const getScoreBadgeVariant = (
     <div v-if="viewState === 'loading'" class="w-full max-w-3xl mx-auto">
       <Card class="w-auto bg-neutral-50 shadow-none border my-4">
         <CardContent class="flex flex-col items-center justify-center">
-          <Spinner size="32" class="text-blue-600 animate-spin" />
+          <Spinner
+            data-testid="loading-spinner"
+            size="32"
+            class="text-blue-600 animate-spin"
+          />
           <p class="text-xl md:text-2xl font-semibold text-gray-900 mb-3">
             Carregando resultados...
           </p>
