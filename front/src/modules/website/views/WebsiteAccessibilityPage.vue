@@ -41,61 +41,90 @@ const config = ref({
   description: "",
 });
 
-const titleScore = Math.random() * 1 + 2;
-const imageScore = Math.random() * 0.5 + 3.3;
-const formScore = Math.random() * 1 + 2;
-const contrastScore = Math.random() * 0.8 + 2;
+const getDescriptionForScore = (
+  title: string,
+  score: number,
+  maxScore: number
+) => {
+  const percentage = (score / maxScore) * 100;
 
-const onSubmit = () => {
+  if (title === "Títulos da Página") {
+    return percentage >= 93
+      ? "Isto é a 'capa do livro' da sua página. A sua está perfeita! O Google e os visitantes sabem exatamente sobre o que ela fala antes mesmo de entrar."
+      : "Isto é a 'capa do livro' da sua página. O título está bom, mas pode ser melhorado para que visitantes e o Google entendam melhor sobre o que sua página fala.";
+  } else if (title === "Descrição das Imagens") {
+    return percentage >= 87
+      ? "Isto é a 'descrição das fotos' para quem não pode vê-las. Quase todas as suas imagens têm essa descrição, o que é ótimo para acessibilidade e para o Google entender suas imagens. Perdemos uns pontinhos por uma imagem que ficou sem."
+      : "Isto é a 'descrição das fotos' para quem não pode vê-las. Algumas imagens não têm descrição, o que dificulta o acesso para pessoas com deficiência visual e para o Google entender o conteúdo.";
+  } else if (title === "Etiquetas dos Formulários") {
+    return percentage >= 93
+      ? "Isto é a 'etiqueta dos campos' em um formulário. Todos os seus campos (como 'nome', 'email') estão bem identificados. Excelente para usabilidade."
+      : "Isto é a 'etiqueta dos campos' em um formulário. Alguns campos não estão bem identificados, o que pode confundir os visitantes na hora de preencher.";
+  }
+  return "Análise completada.";
+};
+
+const onSubmit = async () => {
+  if (!url.value.trim()) {
+    error.value = true;
+    errorMessage.value = "Por favor, digite uma URL válida";
+    return;
+  }
+
   loading.value = true;
   viewState.value = "loading";
-  setTimeout(() => {
-    loading.value = false;
-    error.value = false;
-    viewState.value = "result";
-    resultAnalysis.value.total = 3.5;
+  error.value = false;
+  errorMessage.value = "";
 
+  try {
+    const response: AnalysisResult = await checkWebsiteAccessibility(url.value);
+
+    const total = response.total.score;
+    resultAnalysis.value.total = total;
     resultAnalysis.value.details = [
       {
         title: "Títulos da Página",
-        score: titleScore,
-        maxScore: 3,
-        description:
-          titleScore >= 2.8
-            ? "Isto é a 'capa do livro' da sua página. A sua está perfeita! O Google e os visitantes sabem exatamente sobre o que ela fala antes mesmo de entrar."
-            : "Isto é a 'capa do livro' da sua página. O título está bom, mas pode ser melhorado para que visitantes e o Google entendam melhor sobre o que sua página fala.",
+        score: response.titleScore.score,
+        maxScore: response.titleScore.maxScore,
+        description: getDescriptionForScore(
+          "Títulos da Página",
+          response.titleScore.score,
+          response.titleScore.maxScore
+        ),
       },
       {
         title: "Descrição das Imagens",
-        score: imageScore,
-        maxScore: 4,
-        description:
-          imageScore >= 3.5
-            ? "Isto é a 'descrição das fotos' para quem não pode vê-las. Quase todas as suas imagens têm essa descrição, o que é ótimo para acessibilidade e para o Google entender suas imagens. Perdemos uns pontinhos por uma imagem que ficou sem."
-            : "Isto é a 'descrição das fotos' para quem não pode vê-las. Algumas imagens não têm descrição, o que dificulta o acesso para pessoas com deficiência visual e para o Google entender o conteúdo.",
+        score: response.imageAltScore.score,
+        maxScore: response.imageAltScore.maxScore,
+        description: getDescriptionForScore(
+          "Descrição das Imagens",
+          response.imageAltScore.score,
+          response.imageAltScore.maxScore
+        ),
       },
       {
         title: "Etiquetas dos Formulários",
-        score: formScore,
-        maxScore: 3,
-        description:
-          formScore >= 2.8
-            ? "Isto é a 'etiqueta dos campos' em um formulário. Todos os seus campos (como 'nome', 'email') estão bem identificados. Excelente para usabilidade."
-            : "Isto é a 'etiqueta dos campos' em um formulário. Alguns campos não estão bem identificados, o que pode confundir os visitantes na hora de preencher.",
-      },
-      {
-        title: "Contraste de Cores",
-        score: contrastScore,
-        maxScore: 3,
-        description:
-          contrastScore >= 2.5
-            ? "Isto é a 'visibilidade do texto' na tela. As cores do seu site têm bom contraste, facilitando a leitura para todos, incluindo pessoas com baixa visão."
-            : "Isto é a 'visibilidade do texto' na tela. Algumas áreas do seu site têm cores muito parecidas entre texto e fundo, dificultando a leitura, especialmente para pessoas com baixa visão.",
+        score: response.inputLabelScore.score,
+        maxScore: response.inputLabelScore.maxScore,
+        description: getDescriptionForScore(
+          "Etiquetas dos Formulários",
+          response.inputLabelScore.score,
+          response.inputLabelScore.maxScore
+        ),
       },
     ];
-    config.value = getRatingConfig(resultAnalysis.value.total);
-    console.log(config.value);
-  }, 20);
+
+    config.value = getRatingConfig(total);
+    viewState.value = "result";
+  } catch (err: any) {
+    error.value = true;
+    errorMessage.value =
+      err.message ||
+      "Erro ao analisar o site. Verifique a URL e tente novamente.";
+    viewState.value = "form";
+  } finally {
+    loading.value = false;
+  }
 };
 
 function resetForm() {
@@ -117,7 +146,7 @@ function resetForm() {
 }
 
 const getRatingConfig = (score: number) => {
-  if (score >= 9) {
+  if (score >= 8) {
     return {
       rating: "Excelente",
       color: "text-green-600",
@@ -127,7 +156,7 @@ const getRatingConfig = (score: number) => {
       description:
         "Seu site está em ótima conformidade com as diretrizes de acessibilidade WCAG.",
     };
-  } else if (score >= 7) {
+  } else if (score >= 6) {
     return {
       rating: "Bom",
       color: "text-blue-600",
@@ -136,7 +165,7 @@ const getRatingConfig = (score: number) => {
       description:
         "Seu site está bem, mas algumas melhorias podem torná-lo ainda mais acessível.",
     };
-  } else if (score >= 5) {
+  } else if (score >= 4) {
     return {
       rating: "Necessita Melhorias",
       color: "text-yellow-600",
@@ -197,7 +226,7 @@ const getScoreBadgeVariant = (
       </Card>
     </div>
 
-    <div v-if="loading" class="w-full max-w-3xl mx-auto">
+    <div v-if="viewState === 'loading'" class="w-full max-w-3xl mx-auto">
       <Card class="w-auto bg-neutral-50 shadow-none border my-4">
         <CardContent class="flex flex-col items-center justify-center">
           <Spinner size="32" class="text-blue-600 animate-spin" />
