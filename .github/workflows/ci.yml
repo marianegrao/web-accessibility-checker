@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  frontend_tests:
+    name: Frontend - Vitest + Cypress
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: front/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: ./front
+
+      - name: Run unit tests (Vitest)
+        run: npm run test:unit --if-present
+        working-directory: ./front
+
+      - name: Run Cypress (headless)
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: ./front
+          start: npm run dev
+          wait-on: "http://localhost:5173"
+          wait-on-timeout: 60
+          command: npm run test:e2e
+
+  backend_tests:
+    name: Backend - Vitest
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: ./server
+
+      - name: Run backend tests (Vitest)
+        run: npm run test
+        working-directory: ./server
