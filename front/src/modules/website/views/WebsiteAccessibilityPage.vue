@@ -11,17 +11,22 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import {
   AlertCircle,
+  AlertCircleIcon,
   AlertTriangle,
   CheckCircle2,
   XCircle,
 } from "lucide-vue-next";
+import { checkWebsiteAccessibility } from "../services/website";
+import type { AnalysisResult } from "../services/website";
 
 const url = ref("");
 const viewState = ref("form");
 const loading = ref(false);
 const error = ref(false);
+const errorMessage = ref("");
 const resultAnalysis = ref({
   details: [
     {
@@ -225,6 +230,10 @@ const getScoreBadgeVariant = (
         </CardContent>
       </Card>
     </div>
+    <Alert v-if="error" variant="destructive" class="w-full max-w-2xl mx-auto">
+      <AlertCircleIcon />
+      <AlertTitle>{{ errorMessage }}</AlertTitle>
+    </Alert>
 
     <div v-if="viewState === 'loading'" class="w-full max-w-3xl mx-auto">
       <Card class="w-auto bg-neutral-50 shadow-none border my-4">
