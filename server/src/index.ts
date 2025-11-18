@@ -2,11 +2,17 @@ import "dotenv/config";
 import express from "express";
 import websiteRouter from "./modules/websites/websites.router";
 import { connectMongo } from "./core/database";
+import cors from "cors";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+  })
+);
 app.use(express.json());
-//cors
 app.use("/api", websiteRouter);
 
 async function startServer() {
