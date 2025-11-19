@@ -226,19 +226,18 @@ cd web-accessibility-checker
 
 **2. Configure variáveis de ambiente:**
 
-Em caso do rodar ambiente API locamente configurar env seguindo exemplo abaixo:
-`server/.env` :
-
-```
-NODE_ENV=
-MONGODB_URI=mongodb://username:password@mongodb:port/mongodb?authSource=
-```
-
-Em caso do rodar ambiente DOCKER `.env`, ignorar env anterior e configurar env seguindo exemplo abaixo:
+Para executar ambiente docker, incluir arquivo `.env` na raiz do monorepo, seguindo o exemplo abaixo:
 
 ```env
 MONGO_INITDB_ROOT_USERNAME=
 MONGO_INITDB_ROOT_PASSWORD=
+NODE_ENV=
+MONGODB_URI=mongodb://username:password@mongodb:port/mongodb?authSource=
+```
+
+Para rodar projeto server/ (api) localmente de forma isolada (fora do ambiente docker), incluir arquivo `server/.env`, seguindo exemplo abaixo:
+
+```
 NODE_ENV=
 MONGODB_URI=mongodb://username:password@mongodb:port/mongodb?authSource=
 ```
@@ -304,7 +303,7 @@ Para este projeto, foquei em cumprir os requisitos funcionais e não funcionais 
 
 ---
 
-### A curto prazo
+### Curto prazo
 
 #### 1. Separação de Concerns
 
