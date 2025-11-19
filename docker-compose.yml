@@ -1,0 +1,47 @@
+services:
+  frontend:
+    build: ./front
+    container_name: frontend
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+    environment:
+      - VITE_API_URL=http://api:3000
+    networks:
+      - web-accessibility-network
+
+  api:
+    build: ./server
+    container_name: api
+    depends_on:
+      - mongodb
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - MONGODB_URI=${MONGODB_URI}
+    ports:
+      - "3000:3000"
+    networks:
+      - web-accessibility-network
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:6
+    container_name: mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - web-accessibility-network
+
+volumes:
+  mongo_data:
+
+networks:
+  web-accessibility-network:
+    driver: bridge
