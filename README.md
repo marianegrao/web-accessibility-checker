@@ -1,44 +1,44 @@
 # Web Accessibility Checker
 
-Uma aplicação full-stack para análise de acessibilidade web em tempo real. O projeto permite que usuários submetam URLs para análise básica de conformidade com diretrizes WCAG, armazenando e exibindo histórico de resultados.
+A full-stack application for real-time web accessibility analysis. The project allows users to submit URLs for basic compliance analysis with WCAG guidelines, storing and displaying analysis history.
 
-## 📋 Índice
+## 📋 Table of Contents
 
-- [Visão Geral](#visão-geral)
-- [Arquitetura](#arquitetura)
-  - [Fluxograma de Comunicação](#fluxograma-de-comunicação)
+- [Overview](#overview)
+- [Architecture](#architecture)
+  - [Communication Flow Diagram](#communication-flow-diagram)
   - [Frontend](#frontend)
   - [Backend](#backend)
-- [Configuração & Instalação](#configuração--instalação)
-- [Como Usar](#como-usar)
-- [Melhorias & Refatorações](#melhorias--refatorações)
-  - [Curto Prazo](#curto-prazo)
-  - [Médio Prazo](#médio-prazo)
-  - [Longo Prazo](#longo-prazo)
-- [Escalabilidade](#escalabilidade)
-- [Tecnologias](#tecnologias)
+- [Setup & Installation](#setup--installation)
+- [How to Use](#how-to-use)
+- [Improvements & Refactoring](#improvements--refactoring)
+  - [Short Term](#short-term)
+  - [Medium Term](#medium-term)
+  - [Long Term](#long-term)
+- [Scalability](#scalability)
+- [Technologies](#technologies)
 
 ---
 
-## 🎯 Visão Geral
+## 🎯 Overview
 
-A aplicação permite análise de acessibilidade web focando em três critérios principais:
+The application enables web accessibility analysis focusing on three main criteria:
 
-1. **Títulos da Página** - Valida presença e qualidade do `<title>`
-2. **Descrição de Imagens** - Verifica atributos `alt` em tags `<img>`
-3. **Etiquetas de Formulários** - Valida associação de `<label>` com `<input>`
+1. **Page Titles** - Validates presence and quality of `<title>`
+2. **Image Descriptions** - Checks `alt` attributes in `<img>` tags
+3. **Form Labels** - Validates association of `<label>` with `<input>`
 
-**Pontuação Total:** 0-10 pontos com classificação (Crítico | Necessita Melhorias | Bom | Excelente)
+**Total Score:** 0-10 points with classification (Critical | Needs Improvement | Good | Excellent)
 
 ---
 
-## 🏗️ Arquitetura
+## 🏗️ Architecture
 
-### Fluxograma de Comunicação
+### Communication Flow Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                         USUÁRIO / NAVEGADOR                      │
+│                         USER / BROWSER                           │
 └────────────────────────────────────┬────────────────────────────┘
                                      │
                     ┌────────────────▼────────────────┐
@@ -46,38 +46,38 @@ A aplicação permite análise de acessibilidade web focando em três critérios
                     │    Port: 8080 (nginx proxy)     │
                     └────────────┬─────────────────────┘
                                  │
-                    1️⃣ POST /api/websites/analyze
-                                 │ (URL para análise)
+                    1️⃣ POST /api/analyze
+                                 │ (URL for analysis)
                     ┌────────────▼─────────────────┐
                     │   Backend (Express + Node)   │
-                    │   Port: 3000 (API REST)      │
+                    │   Port: 3000 (REST API)      │
                     └────────────┬──────────────────┘
                                  │
             2️⃣ Fetch website HTML (fetch API)
                                  │ (Target URL)
             ┌────────────────────▼──────────────────────┐
-            │    Website Externo (alvo da análise)      │
+            │    External Website (analysis target)     │
             └────────────────────────────────────────────┘
                                  │
-            3️⃣ Retorna HTML content
+            3️⃣ Returns HTML content
                                  │
                     ┌────────────▼─────────────────┐
-                    │   Análise com Regex/Parser   │
-                    │   (títulos, imagens, forms)  │
+                    │   Analysis with Regex/Parser │
+                    │   (titles, images, forms)    │
                     └────────────┬──────────────────┘
                                  │
-            4️⃣ Calcula Score (0-10 pontos)
+            4️⃣ Calculate Score (0-10 points)
                                  │
                     ┌────────────▼──────────────────┐
-                    │   MongoDB (Persistência)      │
-                    │   Salva: url, score, timestamp│
+                    │   MongoDB (Persistence)      │
+                    │   Saves: url, score, timestamp│
                     └───────────────────────────────┘
                                  │
-            5️⃣ Retorna Score + Detalhes (JSON)
+            5️⃣ Returns Score + Details (JSON)
                                  │
                     ┌────────────▼─────────────────┐
-                    │  Frontend renderiza resultado │
-                    │  (cards com score, descrição) │
+                    │  Frontend renders result     │
+                    │  (cards with score, description) │
                     └───────────────────────────────┘
 ```
 
@@ -85,65 +85,65 @@ A aplicação permite análise de acessibilidade web focando em três critérios
 
 **Stack:** Vue 3 + TypeScript + Vite + TailwindCSS + Shadcn-vue
 
-#### Estrutura de Pastas:
+#### Folder Structure:
 
-Motivos pela escolha de arquitetura e padrões no frontend:
+Rationale for architecture and patterns chosen in the frontend:
 
 - **Module Based Architecture**
-  - O encapsulamento por domínio aproxima a lógica de integração da API do contexto que a usa (em vez de um `services/` gigante e genérico).
-  - Os arquivos relacionados à análise de site ficam juntos e separados do resto da aplicação, permitindo extração e deleção com baixo impacto.
-- **Biblioteca de UI**
-  - A utilização de uma biblioteca de UI incentiva reutilização, consistência visual e evita duplicação de código.
-  - Além disso, possibilita a separação de responsabilidades (essa camada não está atrelada ao domínio de negócio).
+  - Encapsulation by domain brings API integration logic closer to the context that uses it (instead of a generic giant `services/` folder).
+  - Files related to website analysis are kept together and separated from the rest of the application, allowing extraction and deletion with minimal impact.
+- **UI Library**
+  - The use of a UI library encourages reusability, visual consistency, and avoids code duplication.
+  - Additionally, it enables separation of concerns (this layer is not tied to business domain).
 
-De forma geral, essa combinação de Design System/Biblioteca de UI, arquitetura por features e camada de infraestrutura compartilhada é uma base saudável para escalabilidade.
-Conforme o projeto cresce, poderíamos precisar de upgrades:
+Overall, this combination of Design System/UI Library, feature-based architecture, and shared infrastructure layer provides a healthy foundation for scalability.
+As the project grows, we might need upgrades:
 
-- Introduzir composables por módulo para centralizar regra de negócio e fluxo de dados do módulo em composables de caso de uso, conforme o amadurecimento do projeto.
-- Introduzir uma lib de gerenciamento de estado local e global Imaginando que no futuro poderíamos ter um fluxo de login, por exemplo, precisaríamos guardar os dados do usuário logado em toda a aplicação, ou um módulo maior que precise de variáveis compartilhadas entre componentes, evitando assim _prop drilling_.
+- Introduce composables per module to centralize business rules and module data flow in use-case composables, as the project matures.
+- Introduce a state management library for local and global state. For example, in the future we might need to handle user login, requiring user data to be stored across the entire application, or a larger module that needs to share variables between components, avoiding _prop drilling_.
 
 ```
 src/
 ├── components/
 │   └── ui/
-│       ├── accordion/    # Componentes accordion reutilizáveis
-│       ├── alert/        # Alerts com estados (error, success)
-│       ├── badge/        # Badges para status
-│       ├── button/       # Botões estilizados
-│       ├── card/         # Cards compostos (header, content, etc)
-│       ├── input/        # Input customizado
+│       ├── accordion/    # Reusable accordion components
+│       ├── alert/        # Alerts with states (error, success)
+│       ├── badge/        # Status badges
+│       ├── button/       # Styled buttons
+│       ├── card/         # Composite cards (header, content, etc)
+│       ├── input/        # Custom input
 │       └── spinner/      # Loading spinner
 ├── modules/
 │   └── website/
 │       ├── views/
-│       │   ├── WebsiteAccessibilityPage.vue   # Página principal (análise)
-│       │   └── WebsiteHistoryPage.vue         # Página de histórico
+│       │   ├── WebsiteAccessibilityPage.vue   # Main page (analysis)
+│       │   └── WebsiteHistoryPage.vue         # History page
 │       ├── components/
-│       │   └── AnalysisResultModal.vue        # Modal com resultados
+│       │   └── AnalysisResultModal.vue        # Modal with results
 │       └── services/
-│           └── website.ts                      # Serviço de integração API
+│           └── website.ts                      # API integration service
 ├── router/
-│   └── index.ts          # Configuração de rotas (Vue Router)
+│   └── index.ts          # Vue Router configuration
 ├── services/
-│   └── api.ts            # Cliente Axios configurado
+│   └── api.ts            # Configured Axios client
 ```
 
-#### Fluxo de Dados - Frontend:
+#### Data Flow - Frontend:
 
-1. **Entrada:** Usuário digita URL e clica "Analisar"
-2. **Validação:** Verifica se URL é válida
-3. **Requisição:** `checkWebsiteAccessibility(url)` → POST `/api/websites/analyze`
-4. **Estado:** Muda para "loading" com spinner
-5. **Resposta:** Recebe `{ titleScore, imageAltScore, inputLabelScore, total }`
-6. **Transformação:** Calcula percentuais e mensagens descritivas
-7. **Renderização:** Exibe cards com scores coloridos (verde/azul/amarelo/vermelho)
-8. **Histórico:** Carrega lista de análises anteriores
+1. **Input:** User types URL and clicks "Analyze"
+2. **Validation:** Checks if URL is valid
+3. **Request:** `checkWebsiteAccessibility(url)` → POST `/api/analyze`
+4. **State:** Changes to "loading" with spinner
+5. **Response:** Receives `{ titleScore, imageAltScore, inputLabelScore, total }`
+6. **Transformation:** Calculates percentages and descriptive messages
+7. **Rendering:** Displays cards with colored scores (green/blue/yellow/red)
+8. **History:** Loads list of previous analyses
 
-#### Componentes Principais:
+#### Main Components:
 
-- **WebsiteAccessibilityPage:** State manager da análise (form → loading → result)
-- **AnalysisResultModal:** Exibe scores com feedback descritivo
-- **UI Components:** System design reutilizável baseado em Reka UI
+- **WebsiteAccessibilityPage:** Analysis state manager (form → loading → result)
+- **AnalysisResultModal:** Displays scores with descriptive feedback
+- **UI Components:** Reusable design system based on Reka UI
 
 ---
 
@@ -151,82 +151,92 @@ src/
 
 **Stack:** Express + TypeScript + Mongoose + Node.js
 
-#### Estrutura de Pastas:
+#### Folder Structure:
 
-Motivos pela escolha de arquitetura e padrões no backend:
+Rationale for architecture and patterns chosen in the backend:
 
-- **Separação em camadas (Controller → Service → Repository → Model)**
+- **Layered Separation (Controller → Service → Repository → Model)**
 
-  - Essa abordagem reduz acoplamento entre camadas, facilita testes (Mocks) e torna mais simples substituir detalhes de infraestrutura (por exemplo, trocar de MongoDB DynamoDB) sem reescrever a lógica de negócio.
-    - \*\*Controller lida com HTTP (request/response).
-    - Service concentra a regra de negócio (análise + cálculo de score).
-    - Repository implementa a Data Access Layer isolando o acesso ao banco.
-    - Model define o schema e a representação dos dados no MongoDB.
+  - This approach reduces coupling between layers, facilitates testing (Mocks), and makes it simpler to replace infrastructure details (e.g., switching from MongoDB to DynamoDB) without rewriting business logic.
+    - Controller handles HTTP (request/response).
+    - Service concentrates business rules (analysis + score calculation).
+    - Repository implements the Data Access Layer isolating database access.
+    - Model defines the schema and data representation in MongoDB.
 
 - **Domain Module Pattern**
 
-  - Isso segue o padrão de arquitetura por módulo, onde matemos todas as partes relacionadas a um dominio estão no mesmo módulo (alta coesao). Também permite o isolamento do modulo, facilitando evolução, extração ou remoção com baixo impacto no restante do código (baixo acoplamento).
+  - This follows the module-based architecture pattern, where all parts related to a domain are in the same module (high cohesion). It also allows module isolation, facilitating evolution, extraction, or removal with minimal impact on the rest of the code (low coupling).
 
-- **Camada de infraestrutura centralizada**
-  - A centralizacao da conexão com o MongoDB em um arquivo em vez de espalhar lógica de conexão por vários módulos.
-  - Isso segue o princípio de Separation of Concerns, deixando o módulo de domínio focado em regra de negócio, não em detalhes de conexão.
+- **Centralized Infrastructure Layer**
+  - Centralizing MongoDB connection in one file instead of spreading connection logic across multiple modules.
+  - This follows the Separation of Concerns principle, keeping the domain module focused on business rules, not connection details.
 
-De forma geral, essa combinação de arquitetura em camadas, módulos por domínio e infraestrutura centralizada cria uma base limpa, organizada e saudável para um backend escalável, facilitando testes unitários, manutenção e adição de novas features.
+Overall, this combination of layered architecture, domain modules, and centralized infrastructure creates a clean, organized, and healthy foundation for a scalable backend, facilitating unit testing, maintenance, and feature addition.
 
-Conforme o projeto cresce, poderíamos precisar de alguns upgrades:
+As the project grows, we might need some upgrades:
 
-- Consolidar a camada de infraestrutura e evita que lógica cross-cutting se espalhe por controllers e services (ex: middlewares globais, como de Error Handling).
-- Introduzir um padrão de validação e DTOs de entrada/saída mais explícitos isso reforça o padrão de **DTOs** e facilita versionamento de API e documentação. Além disso, permite a implementação de um arquitetura hexagonal (ports e adapters) para permitir migracoes entre ferramentas de forma facilitada (ex: troca da banco, troca de gateway de pagamento)
+- Consolidate the infrastructure layer and prevent cross-cutting logic from spreading across controllers and services (e.g., global middlewares like Error Handling).
+- Introduce a more explicit input/output validation pattern and DTOs. This reinforces the **DTOs** pattern and facilitates API versioning and documentation. Additionally, it enables implementing a hexagonal architecture (ports and adapters) to facilitate tool migrations (e.g., database change, payment gateway change).
 
 ```
 src/
-├── index.ts              # Entry point, inicializa servidor Express
+├── index.ts              # Entry point, initializes Express server
 ├── core/
-│   └── database.ts       # Conexão com MongoDB
+│   └── database.ts       # MongoDB connection
 └── modules/
     └── websites/
-        ├── website.types.ts         # Interfaces TypeScript (PageAnalysisData, ScoreResult)
-        ├── websites.model.ts        # Schema MongoDB (IWebsite)
+        ├── website.types.ts         # TypeScript interfaces (PageAnalysisData, ScoreResult)
+        ├── websites.model.ts        # MongoDB schema (IWebsite)
         ├── websites.repository.ts   # Data Access Layer
-        ├── websites.service.ts      # Business Logic (análise + cálculo score)
+        ├── websites.service.ts      # Business Logic (analysis + score calculation)
         ├── websites.controller.ts   # HTTP handlers (endpoints)
-        └── websites.router.ts       # Definição de rotas
+        └── websites.router.ts       # Route definition
 ```
 
-#### Padrão de Arquitetura - MVC/Clean:
+#### Architecture Pattern - MVC/Clean:
 
 ```
 Request → Controller → Service → Repository → Database
-          (HTTP)    (Lógica)  (Persistência)
+          (HTTP)    (Logic)  (Persistence)
 ```
 
 #### Endpoints:
 
-| Método | Rota                    | Descrição                     |
-| ------ | ----------------------- | ----------------------------- |
-| POST   | `/api/websites/analyze` | Analisa URL e salva resultado |
-| GET    | `/api/websites/list`    | Retorna histórico de análises |
+| Method | Route          | Description                   |
+| ------ | -------------- | ----------------------------- |
+| POST   | `/api/analyze` | Analyzes URL and saves result |
+| GET    | `/api/list`    | Returns analysis history      |
 
-## 📦 Configuração & Instalação
+---
 
-### Pré-requisitos
+## 📦 Setup & Installation
+
+### Prerequisites
 
 - Docker & Docker Compose
-- Node.js 22+ (para desenvolvimento local)
-- npm (para desenvolvimento local)
+- Node.js 22+ (for local development)
+- npm (for local development)
 
-### Desenvolvimento Local
+### Local Development
 
-**1. Clone o repositório:**
+**1. Clone the repository:**
 
 ```bash
 git clone git@github.com:marianegrao/web-accessibility-checker.git
 cd web-accessibility-checker
 ```
 
-**2. Configure variáveis de ambiente:**
+**2. Configure environment variables:**
 
-Para executar ambiente docker, incluir arquivo `.env` na raiz do monorepo, seguindo o exemplo abaixo:
+For running the API environment locally, configure env following the example below:
+`server/.env` :
+
+```
+NODE_ENV=
+MONGODB_URI=mongodb://username:password@mongodb:port/mongodb?authSource=
+```
+
+For running the DOCKER environment, ignore the env above and configure env following the example below:
 
 ```env
 MONGO_INITDB_ROOT_USERNAME=
@@ -235,46 +245,39 @@ NODE_ENV=
 MONGODB_URI=mongodb://username:password@mongodb:port/mongodb?authSource=
 ```
 
-Para rodar projeto server/ (api) localmente de forma isolada (fora do ambiente docker), incluir arquivo `server/.env`, seguindo exemplo abaixo:
-
-```
-NODE_ENV=
-MONGODB_URI=mongodb://username:password@mongodb:port/mongodb?authSource=
-```
-
-**3. Inicie com Docker Compose:**
+**3. Start with Docker Compose:**
 
 ```bash
 docker compose up --build
 ```
 
-**4. Instale dependências (para desenvolvimento local)**
+**4. Install dependencies (for local development)**
 
 ```bash
 cd front && npm install
 cd ../server && npm install
 ```
 
-Acesso:
+Access:
 
 - Frontend: `http://localhost:8080`
 - API: `http://localhost:3000`
 - MongoDB: `mongodb://localhost:27017`
 
-### Desenvolvimento sem Docker
+### Development without Docker
 
 **Terminal 1 - Frontend:**
 
 ```bash
 cd front
-npm run dev  # Servidor Vite em http://localhost:5173
+npm run dev  # Vite server at http://localhost:5173
 ```
 
 **Terminal 2 - Backend:**
 
 ```bash
 cd server
-npm run dev  # Servidor Express em http://localhost:3000
+npm run dev  # Express server at http://localhost:3000
 ```
 
 **Terminal 3 - MongoDB:**
@@ -285,54 +288,54 @@ docker run -d -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=user -e MONGO_INITDB_
 
 ---
 
-## 🚀 Como Usar
+## 🚀 How to Use
 
-1. **Abra a aplicação:** `http://localhost:8080`
-2. **Digite uma URL:** Ex: `https://google.com.br`
-3. **Clique em "Analisar"**
-4. **Visualize resultados:**
-   - Score geral (0-10)
-   - Detalhes por critério (título, imagens, formulários)
-   - Feedback descritivo para cada área
-
----
-
-## 💡 Melhorias & Refatorações
-
-Para este projeto, foquei em cumprir os requisitos funcionais e não funcionais da aplicação. Dado o tempo reduzido para construção, eu dividiria as próximas melhorias da seguinte forma:
+1. **Open the application:** `http://localhost:8080`
+2. **Enter a URL:** E.g.: `https://example.com`
+3. **Click "Analyze"**
+4. **View results:**
+   - Overall score (0-10)
+   - Details by criteria (titles, images, forms)
+   - Descriptive feedback for each area
 
 ---
 
-### Curto prazo
+## 💡 Improvements & Refactoring
 
-#### 1. Separação de Concerns
+For this project, I focused on meeting the functional and non-functional requirements of the application. Given the reduced time for construction, I would divide the next improvements as follows:
+
+---
+
+### Short Term
+
+#### 1. Separation of Concerns
 
 **Service**  
-Antes: `analyzeUrl` faz tudo (fetch + regex + cálculo).  
-Depois: dividir em:
+Before: `analyzeUrl` does everything (fetch + regex + calculation).  
+After: split into:
 
-- `UrlFetcher` (responsável por buscar o HTML);
-- `HtmlParser` (extrai dados com regex ou outra técnica);
-- `ScoringEngine` (calcula os scores).
+- `UrlFetcher` (responsible for fetching HTML);
+- `HtmlParser` (extracts data with regex or other technique);
+- `ScoringEngine` (calculates scores).
 
-**Benefício:** melhora de testabilidade, reutilização e manutenção.
+**Benefit:** improved testability, reusability, and maintenance.
 
-#### 2. Comunicação via WebSocket
+#### 2. WebSocket Communication
 
-Com a etapa de serviço bem separada, é possível ir renderizando no front conforme cada subetapa é concluída, usando WebSocket para enviar atualizações em tempo real (ex.: “buscando HTML”, “analisando imagens”, “calculando score final”).
+With the service layer well separated, it's possible to render on the frontend as each substep is completed, using WebSocket to send real-time updates (e.g.: "fetching HTML", "analyzing images", "calculating final score").
 
-#### 3. Funcionalidade de histórico de análises
+#### 3. Analysis History Functionality
 
-Já existe o endpoint, mas ele pode ser aprimorado:
+The endpoint already exists, but it can be improved:
 
-- Criar índices adicionais (`url`, `score`, `details`, `createdAt`) para melhor detalhamento e performance de consulta;
-- Usar paginação na listagem (evitar consultas muito grandes).
+- Create additional indexes (`url`, `score`, `details`, `createdAt`) for better details and query performance;
+- Use pagination in listings (avoid very large queries).
 
-No front, disponibilizar um **datatable** em que cada linha abre um modal com o detalhamento da análise.
+On the frontend, provide a **datatable** where each row opens a modal with analysis details.
 
-#### 4. Validação de Entrada
+#### 4. Input Validation
 
-Usar uma biblioteca como **zod** ou **joi**:
+Use a library like **zod** or **joi**:
 
 ```ts
 const urlSchema = z.string().url();
@@ -343,94 +346,94 @@ const analyzeSchema = z.object({
 
 ---
 
-### Médio Prazo
+### Medium Term
 
-#### 1. Error Handling robusto
+#### 1. Robust Error Handling
 
-- Criar uma classe `AppError` customizada (códigos e mensagens padronizadas);
-- Usar `try/catch` com tratamento por tipo de erro;
-- Validação de URL além de apenas “string válida” (regras de domínio, protocolo, etc.);
-- Definir timeouts para `fetch`/requisições HTTP (evitar travamentos);
-- Configurar CORS adequadamente, alinhado com os domínios que irão consumir a API.
+- Create a custom `AppError` class (standardized codes and messages);
+- Use `try/catch` with error type handling;
+- URL validation beyond just "valid string" (domain rules, protocol, etc.);
+- Set timeouts for `fetch`/HTTP requests (avoid freezing);
+- Configure CORS properly, aligned with domains that will consume the API.
 
-#### 2. Cache de resultados
+#### 2. Results Caching
 
-Implementar cache de resultados de análise:
+Implement analysis results caching:
 
-- Exemplo: **Redis**;
-- Se a mesma URL foi analisada há menos de X dias (ex.: 7 dias), reutilizar o resultado em cache;
-- Reduz carga no servidor e melhora o tempo de resposta.
+- Example: **Redis**;
+- If the same URL was analyzed less than X days ago (e.g.: 7 days), reuse the cached result;
+- Reduces server load and improves response time.
 
-#### 3. Testes
+#### 3. Testing
 
-- Incluir um banco de dados de homologação no fluxo de testes de integração/completos, permitindo validar o comportamento da aplicação em um ambiente mais próximo de produção.
-- Separar os testes de integração em um repositório específico, facilitando a manutenção por um time dedicado e contribuindo para uma organização mais clara entre testes unitários (no repositório principal) e testes de integração/end-to-end (no repositório de QA/integração).
-- Abranger cenários de teste para verificar o sistema de contagem de elementos. Ex.: contar imagens totais e imagens sem `alt` e conferir se os números retornados estão corretos.
+- Include a staging database in the integration/complete test flow, allowing validation of application behavior in an environment closer to production.
+- Separate integration tests into a specific repository, facilitating maintenance by a dedicated team and contributing to clearer organization between unit tests (in the main repository) and integration/end-to-end tests (in the QA/integration repository).
+- Cover test scenarios to verify the element counting system. E.g.: count total images and images without `alt` and verify if the returned numbers are correct.
 
-#### 4. Refinamento do Design
+#### 4. Design Refinement
 
-Manter um processo contínuo de refinamento do design, garantindo evolução visual e de usabilidade sem comprometer o nível de acessibilidade.
-
----
-
-### Longo Prazo
-
-#### 1. Refinamento da análise
-
-Hoje em dia, a análise não abrange bem cenários de aplicações com páginas de conteúdo dinâmico. A solução seria integrar **Puppeteer/Playwright/Selenium**, o que também permitiria:
-
-- Capturar **screenshot** da página analisada;
-- Separar essa análise em um **microserviço** (por exemplo, em Lambda) isolado do core da API.
-
-Também é possível adicionar novos critérios de acessibilidade (WCAG):
-
-- Contraste de cores (WCAG AA/AAA);
-- Hierarquia de headings (`<h1>`...`<h6>`);
-- Links sem âncora descritiva (“clique aqui” vs descrição adequada);
-- Estrutura semântica (`<main>`, `<nav>`, `<article>`, etc.);
-- Atributos ARIA (`role`, `aria-label`, `aria-describedby`);
-- Velocidade de carregamento;
-- Métricas de performance (ex.: Lighthouse score).
+Maintain a continuous design refinement process, ensuring visual and usability evolution without compromising accessibility level.
 
 ---
 
-## 📈 Escalabilidade
+### Long Term
 
-### Problemas Atuais e suas possíveis soluções
+#### 1. Analysis Refinement
 
-- **Análise síncrona (bloqueia a request)**
+Nowadays, the analysis does not cover well scenarios of applications with dynamic content pages. The solution would be to integrate **Puppeteer/Playwright/Selenium**, which would also allow:
 
-  - Problema: se o site analisado for lento, a requisição pode estourar por timeout.
-  - Possível solução: transformar a análise em um processo assíncrono que apenas sinaliza (por e-mail, por exemplo) quando a análise for finalizada.
-    - Nesse cenário, poderíamos utilizar **filas SQS** (FIFO caso um mesmo cliente precise de diferentes análises em uma ordem específica de processamento), que acionariam um sistema de análise em **AWS Lambda**.
-    - Dessa forma, a API não ficaria bloqueada aguardando a conclusão da análise; sua responsabilidade seria basicamente **incluir a mensagem na fila** e retornar imediatamente.
+- Capture **screenshot** of the analyzed page;
+- Separate this analysis into a **microservice** (for example, in Lambda) isolated from the API core.
 
-- **Sem cache de resultados**
+It's also possible to add new accessibility criteria (WCAG):
 
-  - Problema: múltiplas análises do mesmo site resultam em múltiplas requisições completas, aumentando custo e latência.
-  - Possível solução: introduzir um sistema de **cache** para respostas recentes, utilizando por exemplo **Redis** ou **Amazon ElastiCache**, reduzindo processamento desnecessário e acelerando respostas para URLs já analisadas.
+- Color contrast (WCAG AA/AAA);
+- Heading hierarchy (`<h1>`...`<h6>`);
+- Links without descriptive anchor ("click here" vs adequate description);
+- Semantic structure (`<main>`, `<nav>`, `<article>`, etc.);
+- ARIA attributes (`role`, `aria-label`, `aria-describedby`);
+- Loading speed;
+- Performance metrics (e.g.: Lighthouse score).
 
-- **Sem limite de requisições (risco de DoS)**
+---
 
-  - Problema: não há controle de taxa de requisições, abrindo brecha para abuso ou possíveis ataques de negação de serviço.
-  - Possível solução: adicionar um **middleware de rate limiting**, que restrinja o número de requisições por IP/cliente em um intervalo de tempo.
-    - Isso pode ser feito na camada de aplicação (bibliotecas de rate limit) ou em um proxy/reverso como **Nginx** ou API Gateway, que também oferecem mecanismos de throttling.
+## 📈 Scalability
 
-- **Risco ao servir em uma única máquina (EC2)**
-  - Problema: se a API rodar em apenas uma instância (EC2), há risco de indisponibilidade em cenários de múltiplas requisições simultâneas ou falha da máquina.
-  - Possível solução: utilizar um **load balancer** na frente de múltiplas instâncias da aplicação, permitindo **escalonamento horizontal** conforme picos de acesso e aumentando a resiliência em caso de falha de uma das instâncias. Para o frontend poderiamos servir no CloudFront (Vue build estático e seus assets) para redução de latencia. O Banco de dados poderia ser migrado para o DynamoDB de forma que toda nossa aplicação ficaria distribuida na AWS.
-    > PS: Com essa abordagem teriamos um certo maleficio de lock-in na infraestrutura AWS o que pode dificultar na migracao de cloud, mas pode facilitar o processo de centralicao de servicos
+### Current Problems and Possible Solutions
 
-### Monitoramento & Observabilidade
+- **Synchronous Analysis (blocks request)**
 
-Quando falamos de infraestruturas escaláveis, estamos falando de múltiplas instâncias. Ou seja, na arquitetura passamos a ter mais pontos de acesso e mais modificações ocorrendo em paralelo, que precisam ser monitoradas para:
+  - Problem: if the analyzed site is slow, the request may timeout.
+  - Possible solution: transform the analysis into an asynchronous process that only signals (via email, for example) when the analysis is complete.
+    - In this scenario, we could use **SQS queues** (FIFO if a same client needs different analyses in a specific processing order), which would trigger an analysis system in **AWS Lambda**.
+    - This way, the API wouldn't be blocked waiting for analysis completion; its responsibility would basically be to **add the message to the queue** and return immediately.
 
-- análise de gastos,
-- acompanhamento de picos de uso,
-- rastreio e diagnóstico de erros.
-  Um bom plano de monitoramento e observabilidade torna possível entender o comportamento do sistema em produção, reagir rapidamente a incidentes e planejar a evolução da infraestrutura de forma mais eficiente.
+- **No Results Caching**
 
-## 📝 Testes
+  - Problem: multiple analyses of the same site result in multiple complete requests, increasing cost and latency.
+  - Possible solution: introduce a **caching** system for recent responses, using for example **Redis** or **Amazon ElastiCache**, reducing unnecessary processing and speeding up responses for already analyzed URLs.
+
+- **No Request Limiting (DoS Risk)**
+
+  - Problem: there's no request rate control, opening a gap for abuse or possible denial of service attacks.
+  - Possible solution: add a **rate limiting middleware**, which restricts the number of requests per IP/client in a time interval.
+    - This can be done at the application layer (rate limit libraries) or in a proxy/reverse like **Nginx** or API Gateway, which also offer throttling mechanisms.
+
+- **Risk of Serving on a Single Machine (EC2)**
+  - Problem: if the API runs on only one instance (EC2), there's risk of unavailability in scenarios of multiple simultaneous requests or machine failure.
+  - Possible solution: use a **load balancer** in front of multiple application instances, allowing **horizontal scaling** according to access peaks and increasing resilience in case of failure of one of the instances. For the frontend we could serve on CloudFront (Vue static build and its assets) for latency reduction. The database could be migrated to DynamoDB so that our entire application would be distributed on AWS.
+    > PS: With this approach we would have a certain AWS infrastructure lock-in disadvantage which could complicate cloud migration, but could facilitate the service centralization process
+
+### Monitoring & Observability
+
+When we talk about scalable infrastructures, we're talking about multiple instances. That is, in the architecture we move to having more access points and more modifications occurring in parallel, which need to be monitored for:
+
+- spending analysis,
+- tracking usage peaks,
+- error tracking and diagnosis.
+  A good monitoring and observability plan makes it possible to understand system behavior in production, react quickly to incidents, and plan infrastructure evolution more efficiently.
+
+## 📝 Testing
 
 ### Frontend
 
@@ -461,8 +464,8 @@ npm run test:coverage
 ### CI/CD
 
 ```bash
-# GitHub Actions executam em:
-# - Push para master
+# GitHub Actions run on:
+# - Push to master
 # - Pull requests
 
 # Stages:
@@ -472,18 +475,18 @@ npm run test:coverage
 
 ---
 
-## 🛠️ Tecnologias
+## 🛠️ Technologies
 
 ### Frontend
 
-- **Vue 3** - Framework reativo
+- **Vue 3** - Reactive framework
 - **TypeScript** - Type safety
-- **Vite** - Build tool rápido
+- **Vite** - Fast build tool
 - **Vitest** - Testing framework
 - **Cypress** - E2E testing
 - **TailwindCSS** - Utility-first CSS
 - **Axios** - HTTP client
-- **Vue Router** - Roteamento SPA
+- **Vue Router** - SPA routing
 - **Reka UI** - Component library
 
 ### Backend
@@ -497,14 +500,14 @@ npm run test:coverage
 
 ### DevOps
 
-- **Docker** - Containerização
-- **Docker Compose** - Orquestração
-- **MongoDB 6** - Banco de dados
-- **Nginx** - Proxy reverso (frontend)
+- **Docker** - Containerization
+- **Docker Compose** - Orchestration
+- **MongoDB 6** - Database
+- **Nginx** - Reverse proxy (frontend)
 - **GitHub Actions** - CI/CD
 
 ---
 
-## 👤 Autora
+## 👤 Author
 
-Desenvolvido por Maria C. Negrão
+Developed by Maria C. Negrão
